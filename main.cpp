@@ -54,6 +54,9 @@ public:
         }
         if (node->left == nullptr && node->right == nullptr) {
             huffmanCode[node->ch] = code;
+            if (code == "") {
+                huffmanCode[node->ch] = "1";
+            }
             return;
         }
         Encode(node->left, code + "0", huffmanCode);
@@ -65,20 +68,23 @@ public:
         auto tree = BuildHuffmanTree(GetFrequencyText(text));
         Encode(tree, "", huffmanCode);
         string text_code = "";
-
+//        for (auto i : huffmanCode) {
+//            cout << i.first << " " << i.second << endl;
+//        }
         for (auto i : text) {
             text_code += huffmanCode[i];
         }
         return text_code;
     }
 
-    static char Decode(Node* node, int& index, string code) {
+    static void Decode(Node* node, int& index, string code, string& decode) {
         while (true) {
             if (node == nullptr) {
-                return '\0';
+                return;
             }
             if (node->left == nullptr && node->right == nullptr) {
-                return node->ch;
+                decode += node->ch;
+                return;
             }
             index++;
             if (code[index] == '0') {
@@ -95,7 +101,10 @@ public:
         int index = -1;
         string decode = "";
         while (index < (int)code.size() - 1) {
-            decode += Decode(tree, index, code);
+            Decode(tree, index, code, decode);
+            if (tree->left == nullptr && tree->right == nullptr) {
+                index++;
+            }
         }
         return decode;
 
@@ -120,18 +129,39 @@ public:
     }
 };
 
-
-
-
-int main() {
-    vector<string> test_strings = {"aba", "abababab", "ABBBBAaaaAAab", "aaaaabbbbcccaas", "afkjd", "fkjds;flkj",
-                      "ututututu", "qqsdqqqsdttq", "twioerutiorut", "jflkdsjfkdls"};
+void RunTests() {
+    int CountCorrectTests = 0;
+    int CountFailedTests = 0;
+    vector<string> test_strings = {"aaa", "abababab", "ABBBBAaaaAAab", "aaaaabbbbcccaas", "afkjd", "fkjds;flkj",
+                                   "ututututu", "qqsdqqqsdttq", "twioerutiorut", "jflkdsjfkdls", "FKLJFWIEOFEIOFJEWFKJHEKj1212"};
 
     for (int i = 0; i < test_strings.size(); ++i) {
         string text = test_strings[i];
         string code = Huffman::EncodeText(text);
         string decode = Huffman::DecodeText(Huffman::GetFrequencyText(text), code);
-        cout << "Test " << i + 1 << ": " << (text == decode ? "ok" : "error") << endl;
+        cout << "Test " << i + 1 << ": " << text << endl;
+        if (text == decode) {
+            CountCorrectTests++;
+            cout << "ok";
+        }
+        else {
+            CountFailedTests++;
+            cout << "error";
+        }
+        cout << endl;
     }
+    cout << "Correct tests: " << CountCorrectTests << endl;
+    cout << "Failed tests: " << CountFailedTests << endl << endl;
+}
+int main() {
+    RunTests();
+    string text;
+    cout << "Enter text: \n";
+    getline(cin, text);
+    string code = Huffman::EncodeText(text);
+    string decode = Huffman::DecodeText(Huffman::GetFrequencyText(text), code);
+    cout << "Text: " << text << endl;
+    cout << "Code: " << code << endl;
+    cout << "Decode: " << decode << endl;
     return 0;
 }
